@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosponsor Formatting Tool</title>
+    <title>Cosigner Formatting Tool</title>
+    <script src="https://cdn.counter.dev/script.js" data-id="91fcf8e8-fa60-40bf-851e-75466ee260b0" data-utcoffset="-4"></script>
     <style>
         body {
             font-family: system-ui, Arial, sans-serif;
@@ -121,20 +122,23 @@
             text-decoration: underline;
         }
     </style>
-    <script src="https://cdn.counter.dev/script.js" data-id="91fcf8e8-fa60-40bf-851e-75466ee260b0" data-utcoffset="-4"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Cosponsor Formatting Tool</h1>
+        <h1>Cosigner Formatting Tool</h1>
         <div class="instructions">
             <strong>Instructions:</strong><br>
-            On <b>congress.gov</b>, go to the cosponsor tab of a bill page.<br>
-            Copy and paste the list of cosponsors here.<br><br>
+            On <b>quill.senate.gov</b>, go to the cosigner tab of a letter page.<br>
+            Copy and paste the list of cosigners here.<br><br>
             <b>Example:</b><br>
             <pre style="background:#f6f6e7;border-radius:6px;padding:0.7em 1em;font-size:1em;overflow-x:auto;">
-Rep. Bilirakis, Gus M. [R-FL-12]*	01/31/2025
-Rep. Frost, Maxwell [D-FL-10]*	01/31/2025
-Rep. Castor, Kathy [D-FL-14]*	01/31/2025
+Panetta, Jimmy	Rep	D	CA	Signed
+E-Signature
+Peters, Scott	Rep	D	CA	Signed
+E-Signature
+Pettersen, Brittany	Rep	D	CO	Signed
+E-Signature
+Pocan, Mark	Rep	D	WI	-
             </pre>
         </div>
         
@@ -214,116 +218,194 @@ Rep. Castor, Kathy [D-FL-14]*	01/31/2025
             </div>
         </div>
         
-        <form id="cosponsor-form">
-            <textarea id="input" placeholder="Paste your cosponsor list here..."></textarea>
+        <form id="cosigner-form">
+            <textarea id="input" placeholder="Paste your cosigner list here..."></textarea>
             <button type="submit">Format Names</button>
         </form>
         <div class="output" id="output"></div>
     </div>
     <script>
-        function parseCongressGovEntries(text) {
+        function parseEntries(text) {
             const lines = text.replace(/\r/g, '').split('\n');
             const entries = [];
-            
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed) continue;
-                
-                // Parse congress.gov format: "Rep. LastName, FirstName [Party-State-District]*\tDate"
-                // Example: "Rep. Bilirakis, Gus M. [R-FL-12]*\t01/31/2025"
-                const parts = trimmed.split('\t');
-                if (parts.length < 1) continue;
-                
-                const nameAndInfo = parts[0].trim();
-                
-                // Extract the name part (everything before the bracket)
-                const bracketIndex = nameAndInfo.indexOf('[');
-                if (bracketIndex === -1) continue;
-                
-                const namePart = nameAndInfo.substring(0, bracketIndex).trim();
-                const infoPart = nameAndInfo.substring(bracketIndex);
-                
-                // Remove "Rep." or "Sen." prefix and extract name
-                let cleanName = namePart.replace(/^(Rep\.|Sen\.)\s+/, '');
-                // Remove trailing asterisk if present
-                cleanName = cleanName.replace(/\*$/, '').trim();
-                
-                // Extract party and state from bracket info [R-FL-12]
-                const bracketMatch = infoPart.match(/\[([RD])-([A-Z]{2})-?.*?\]/);
-                let party = '';
-                let state = '';
-                if (bracketMatch) {
-                    party = bracketMatch[1];
-                    state = bracketMatch[2];
+            for (let i = 0; i < lines.length; ) {
+                const main = lines[i].trim();
+                const sig = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
+                if (!main) {
+                    i++;
+                    continue;
                 }
-                
-                // Extract last name (everything before the first comma)
-                const lastName = cleanName.split(',')[0].trim();
-                
-                if (lastName) {
-                    entries.push({
-                        lastName,
-                        fullName: cleanName,
-                        party,
-                        state,
-                        originalLine: trimmed
-                    });
+                if (sig === 'E-Signature') {
+                    entries.push([main, sig]);
+                    i += 2;
+                } else {
+                    // No E-Signature after this line, skip
+                    i++;
                 }
             }
-            
             return entries;
         }
 
-        document.getElementById('cosponsor-form').addEventListener('submit', function(e) {
+        function formatNamesGrouped(entries, selectedParty = '', selectedState = '') {
+            const rep = [];
+            const sen = [];
+            let repDemocrats = 0;
+            let repRepublicans = 0;
+            let senDemocrats = 0;
+            let senRepublicans = 0;
+            let hasPartyInfo = false;
+            for (const entry of entries) {
+                const [main, sig] = entry;
+                if (sig !== 'E-Signature') continue;
+                const parts = main.split('\t');
+                if (parts.length < 3) continue; // minimum: name, chamber, state/status
+                const name = parts[0];
+                let chamber = '';
+                let party = null;
+                let state = '';
+                // Robust parsing for chamber/party/state
+                if (parts[1].startsWith('Rep')) {
+                    chamber = 'Rep';
+                    if (parts.length >= 5) {
+                        // name, Rep, party, state, status
+                        party = parts[2];
+                        state = parts[3];
+                    } else if (parts.length >= 4) {
+                        // name, Rep, state, status (no party)
+                        state = parts[2];
+                    }
+                } else if (parts[1].startsWith('Sen')) {
+                    chamber = 'Sen';
+                    // Sometimes state is part of 'Sen CA'
+                    let senParts = parts[1].split(' ');
+                    if (senParts.length === 2) {
+                        state = senParts[1];
+                        if (parts.length >= 4) {
+                            // name, 'Sen XX', status
+                            // no party
+                        }
+                    } else if (parts.length >= 4) {
+                        // name, Sen, party, state, status
+                        party = parts[2];
+                        state = parts[3];
+                    }
+                } else {
+                    // fallback: treat as Rep, no party
+                    chamber = 'Rep';
+                    if (parts.length >= 3) {
+                        state = parts[1];
+                    }
+                }
+                const lastName = name.split(',')[0].trim();
+                let classList = '';
+                if (party === 'R') {
+                    classList = 'italic';
+                }
+                // Highlight based on user selection
+                if (selectedParty && selectedState && party === selectedParty && state === selectedState) {
+                    classList = 'highlight';
+                }
+                // If party is missing, do not format
+                if (!party) classList = '';
+                
+                // Count party affiliations
+                if (party) {
+                    hasPartyInfo = true;
+                    if (party === 'D') {
+                        if (chamber === 'Sen') {
+                            senDemocrats++;
+                        } else {
+                            repDemocrats++;
+                        }
+                    } else if (party === 'R') {
+                        if (chamber === 'Sen') {
+                            senRepublicans++;
+                        } else {
+                            repRepublicans++;
+                        }
+                    }
+                }
+                
+                const obj = { lastName, classList };
+                if (chamber === 'Sen') {
+                    sen.push(obj);
+                } else {
+                    rep.push(obj);
+                }
+            }
+            return { 
+                rep, 
+                sen, 
+                repDemocrats, 
+                repRepublicans, 
+                senDemocrats, 
+                senRepublicans, 
+                hasPartyInfo 
+            };
+        }
+
+        document.getElementById('cosigner-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const input = document.getElementById('input').value;
-            const entries = parseCongressGovEntries(input);
+            const entries = parseEntries(input);
             
-            // Get selected party and state from dropdowns for highlighting
+            // Get selected party and state from dropdowns
             const selectedParty = document.getElementById('party-select').value;
             const selectedState = document.getElementById('state-select').value;
             
+            const { rep, sen, repDemocrats, repRepublicans, senDemocrats, senRepublicans, hasPartyInfo } = formatNamesGrouped(entries, selectedParty, selectedState);
+            
+            // Alphabetize the lists by lastName
+            rep.sort((a, b) => a.lastName.localeCompare(b.lastName));
+            sen.sort((a, b) => a.lastName.localeCompare(b.lastName));
+            
             const outputDiv = document.getElementById('output');
-            if (entries.length === 0) {
+            if (rep.length === 0 && sen.length === 0) {
                 outputDiv.innerHTML = '<span style="color:#888">No valid names found.</span>';
                 return;
             }
-            
-            // Sort alphabetically by last name
-            entries.sort((a, b) => a.lastName.localeCompare(b.lastName));
-            
-            // Count party affiliations
-            const democrats = entries.filter(e => e.party === 'D').length;
-            const republicans = entries.filter(e => e.party === 'R').length;
-            
-            // Generate output
             let html = '';
-            
-            // Add cosponsor tally
-            if (democrats > 0 || republicans > 0) {
-                html += `<strong>(Cosponsors ${democrats}D, ${republicans}R):</strong> `;
-            }
-            
-            // Generate the alphabetized list of last names
-            const namesList = entries.map(entry => {
-                let name = entry.lastName;
-                
-                // Check if this entry should be highlighted
-                const shouldHighlight = selectedParty && selectedState && 
-                    entry.party === selectedParty && entry.state === selectedState;
-                
-                // Apply styling based on priority: highlight > italic
-                if (shouldHighlight) {
-                    name = `<span class="highlight">${name}</span>`;
-                } else if (entry.party === 'R') {
-                    name = `<span class="italic">${name}</span>`;
+            if (rep.length > 0) {
+                // Add cosponsor tally before Representatives list (includes both Rep and Sen)
+                const totalDemocrats = repDemocrats + senDemocrats;
+                const totalRepublicans = repRepublicans + senRepublicans;
+                if (hasPartyInfo) {
+                    html += `<strong>(Cosponsors ${totalDemocrats}D, ${totalRepublicans}R):</strong> `;
+                } else {
+                    html += '<strong>(Cosponsors _D, _R):</strong> ';
                 }
-                
-                return name;
-            }).join(', ');
-            
-            html += namesList;
+                html += rep.map(n => {
+                    let name = n.lastName;
+                    if (n.classList) name = `<span class="${n.classList}">${name}</span>`;
+                    return name;
+                }).join(', ');
+            }
+            if (sen.length > 0) {
+                if (rep.length > 0) html += '<br>';
+                html += sen.map(n => {
+                    let name = n.lastName;
+                    if (n.classList) name = `<span class="${n.classList}">${name}</span>`;
+                    return name;
+                }).join(', ');
+            }
             outputDiv.innerHTML = html;
+        });
+
+        document.getElementById('cosigner-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('input').value;
+            const groups = parseGroups(input);
+            const names = formatNames(groups);
+            const outputDiv = document.getElementById('output');
+            if (names.length === 0) {
+                outputDiv.innerHTML = '<span style="color:#888">No valid names found.</span>';
+                return;
+            }
+            outputDiv.innerHTML = names.map((n, idx) => {
+                let html = n.lastName;
+                if (n.classList) html = `<span class="${n.classList}">${html}</span>`;
+                return html;
+            }).join(', ');
         });
     </script>
     
