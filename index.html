@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosigner Formatting Tool</title>
+    <style>
+        body {
+            font-family: system-ui, Arial, sans-serif;
+            background: #fafbfc;
+            color: #222;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 48px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px #0001;
+            padding: 2.5em 2em 2em 2em;
+        }
+        h1 {
+            font-size: 2.1em;
+            margin: 0 0 0.7em 0;
+            text-align: center;
+        }
+        .instructions {
+            font-size: 1em;
+            color: #444;
+            margin-bottom: 1.5em;
+            background: #f6f6e7;
+            padding: 1em;
+            border-radius: 8px;
+            white-space: pre-line;
+        }
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            font-size: 1.1em;
+            padding: 1em;
+            border-radius: 8px;
+            border: 1px solid #bbb;
+            margin-bottom: 1em;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            font-size: 1.1em;
+            padding: 0.7em;
+            background: #2867c6;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 1.5em;
+        }
+        button:hover {
+            background: #184c90;
+        }
+        .output {
+            font-size: 1.2em;
+            margin-top: 1.5em;
+            word-break: break-word;
+        }
+        .italic {
+            font-style: italic;
+        }
+        .highlight {
+            background: yellow;
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+        .highlight-section {
+            background: #f0f8ff;
+            padding: 1em;
+            border-radius: 8px;
+            margin-bottom: 1.5em;
+            border: 1px solid #ddd;
+        }
+        .dropdown-container {
+            display: flex;
+            gap: 1em;
+            margin-top: 0.5em;
+            flex-wrap: wrap;
+        }
+        .dropdown-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3em;
+        }
+        .dropdown-group label {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        select {
+            padding: 0.5em;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-size: 1em;
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cosigner Formatting Tool</h1>
+        <div class="instructions">
+            <strong>Instructions:</strong><br>
+            On <b>quill.senate.gov</b>, go to the cosigner tab of a letter page.<br>
+            Copy and paste the list of cosigners here.<br><br>
+            <b>Example:</b><br>
+            <pre style="background:#f6f6e7;border-radius:6px;padding:0.7em 1em;font-size:1em;overflow-x:auto;">
+Panetta, Jimmy	Rep	D	CA	Signed
+E-Signature
+Peters, Scott	Rep	D	CA	Signed
+E-Signature
+Pettersen, Brittany	Rep	D	CO	Signed
+E-Signature
+Pocan, Mark	Rep	D	WI	-
+            </pre>
+        </div>
+        
+        <div class="highlight-section">
+            <div style="margin-bottom: 0.5em;">If you would like co-signers from your party and state highlighted in yellow, select your party and state below. Otherwise, leave blank.</div>
+            <div class="dropdown-container">
+                <div class="dropdown-group">
+                    <label for="party-select">Party:</label>
+                    <select id="party-select">
+                        <option value="">Select Party</option>
+                        <option value="D">Democrat</option>
+                        <option value="R">Republican</option>
+                    </select>
+                </div>
+                <div class="dropdown-group">
+                    <label for="state-select">State:</label>
+                    <select id="state-select">
+                        <option value="">Select State</option>
+                        <option value="AL">Alabama (AL)</option>
+                        <option value="AK">Alaska (AK)</option>
+                        <option value="AS">American Samoa (AS)</option>
+                        <option value="AZ">Arizona (AZ)</option>
+                        <option value="AR">Arkansas (AR)</option>
+                        <option value="CA">California (CA)</option>
+                        <option value="CO">Colorado (CO)</option>
+                        <option value="CT">Connecticut (CT)</option>
+                        <option value="DE">Delaware (DE)</option>
+                        <option value="DC">District of Columbia (DC)</option>
+                        <option value="FL">Florida (FL)</option>
+                        <option value="GA">Georgia (GA)</option>
+                        <option value="GU">Guam (GU)</option>
+                        <option value="HI">Hawaii (HI)</option>
+                        <option value="ID">Idaho (ID)</option>
+                        <option value="IL">Illinois (IL)</option>
+                        <option value="IN">Indiana (IN)</option>
+                        <option value="IA">Iowa (IA)</option>
+                        <option value="KS">Kansas (KS)</option>
+                        <option value="KY">Kentucky (KY)</option>
+                        <option value="LA">Louisiana (LA)</option>
+                        <option value="ME">Maine (ME)</option>
+                        <option value="MD">Maryland (MD)</option>
+                        <option value="MA">Massachusetts (MA)</option>
+                        <option value="MI">Michigan (MI)</option>
+                        <option value="MN">Minnesota (MN)</option>
+                        <option value="MS">Mississippi (MS)</option>
+                        <option value="MO">Missouri (MO)</option>
+                        <option value="MT">Montana (MT)</option>
+                        <option value="NE">Nebraska (NE)</option>
+                        <option value="NV">Nevada (NV)</option>
+                        <option value="NH">New Hampshire (NH)</option>
+                        <option value="NJ">New Jersey (NJ)</option>
+                        <option value="NM">New Mexico (NM)</option>
+                        <option value="NY">New York (NY)</option>
+                        <option value="NC">North Carolina (NC)</option>
+                        <option value="ND">North Dakota (ND)</option>
+                        <option value="MP">Northern Mariana Islands (MP)</option>
+                        <option value="OH">Ohio (OH)</option>
+                        <option value="OK">Oklahoma (OK)</option>
+                        <option value="OR">Oregon (OR)</option>
+                        <option value="PA">Pennsylvania (PA)</option>
+                        <option value="PR">Puerto Rico (PR)</option>
+                        <option value="RI">Rhode Island (RI)</option>
+                        <option value="SC">South Carolina (SC)</option>
+                        <option value="SD">South Dakota (SD)</option>
+                        <option value="TN">Tennessee (TN)</option>
+                        <option value="TX">Texas (TX)</option>
+                        <option value="UT">Utah (UT)</option>
+                        <option value="VT">Vermont (VT)</option>
+                        <option value="VA">Virginia (VA)</option>
+                        <option value="VI">Virgin Islands (VI)</option>
+                        <option value="WA">Washington (WA)</option>
+                        <option value="WV">West Virginia (WV)</option>
+                        <option value="WI">Wisconsin (WI)</option>
+                        <option value="WY">Wyoming (WY)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <form id="cosigner-form">
+            <textarea id="input" placeholder="Paste your cosigner list here..."></textarea>
+            <button type="submit">Format Names</button>
+        </form>
+        <div class="output" id="output"></div>
+    </div>
+    <script>
+        function parseEntries(text) {
+            const lines = text.replace(/\r/g, '').split('\n');
+            const entries = [];
+            for (let i = 0; i < lines.length; ) {
+                const main = lines[i].trim();
+                const sig = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
+                if (!main) {
+                    i++;
+                    continue;
+                }
+                if (sig === 'E-Signature') {
+                    entries.push([main, sig]);
+                    i += 2;
+                } else {
+                    // No E-Signature after this line, skip
+                    i++;
+                }
+            }
+            return entries;
+        }
+
+        function formatNamesGrouped(entries, selectedParty = '', selectedState = '') {
+            const rep = [];
+            const sen = [];
+            let repDemocrats = 0;
+            let repRepublicans = 0;
+            let senDemocrats = 0;
+            let senRepublicans = 0;
+            let hasPartyInfo = false;
+            for (const entry of entries) {
+                const [main, sig] = entry;
+                if (sig !== 'E-Signature') continue;
+                const parts = main.split('\t');
+                if (parts.length < 3) continue; // minimum: name, chamber, state/status
+                const name = parts[0];
+                let chamber = '';
+                let party = null;
+                let state = '';
+                // Robust parsing for chamber/party/state
+                if (parts[1].startsWith('Rep')) {
+                    chamber = 'Rep';
+                    if (parts.length >= 5) {
+                        // name, Rep, party, state, status
+                        party = parts[2];
+                        state = parts[3];
+                    } else if (parts.length >= 4) {
+                        // name, Rep, state, status (no party)
+                        state = parts[2];
+                    }
+                } else if (parts[1].startsWith('Sen')) {
+                    chamber = 'Sen';
+                    // Sometimes state is part of 'Sen CA'
+                    let senParts = parts[1].split(' ');
+                    if (senParts.length === 2) {
+                        state = senParts[1];
+                        if (parts.length >= 4) {
+                            // name, 'Sen XX', status
+                            // no party
+                        }
+                    } else if (parts.length >= 4) {
+                        // name, Sen, party, state, status
+                        party = parts[2];
+                        state = parts[3];
+                    }
+                } else {
+                    // fallback: treat as Rep, no party
+                    chamber = 'Rep';
+                    if (parts.length >= 3) {
+                        state = parts[1];
+                    }
+                }
+                const lastName = name.split(',')[0].trim();
+                let classList = '';
+                if (party === 'R') {
+                    classList = 'italic';
+                }
+                // Highlight based on user selection
+                if (selectedParty && selectedState && party === selectedParty && state === selectedState) {
+                    classList = 'highlight';
+                }
+                // If party is missing, do not format
+                if (!party) classList = '';
+                
+                // Count party affiliations
+                if (party) {
+                    hasPartyInfo = true;
+                    if (party === 'D') {
+                        if (chamber === 'Sen') {
+                            senDemocrats++;
+                        } else {
+                            repDemocrats++;
+                        }
+                    } else if (party === 'R') {
+                        if (chamber === 'Sen') {
+                            senRepublicans++;
+                        } else {
+                            repRepublicans++;
+                        }
+                    }
+                }
+                
+                const obj = { lastName, classList };
+                if (chamber === 'Sen') {
+                    sen.push(obj);
+                } else {
+                    rep.push(obj);
+                }
+            }
+            return { 
+                rep, 
+                sen, 
+                repDemocrats, 
+                repRepublicans, 
+                senDemocrats, 
+                senRepublicans, 
+                hasPartyInfo 
+            };
+        }
+
+        document.getElementById('cosigner-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('input').value;
+            const entries = parseEntries(input);
+            
+            // Get selected party and state from dropdowns
+            const selectedParty = document.getElementById('party-select').value;
+            const selectedState = document.getElementById('state-select').value;
+            
+            const { rep, sen, repDemocrats, repRepublicans, senDemocrats, senRepublicans, hasPartyInfo } = formatNamesGrouped(entries, selectedParty, selectedState);
+            
+            // Alphabetize the lists by lastName
+            rep.sort((a, b) => a.lastName.localeCompare(b.lastName));
+            sen.sort((a, b) => a.lastName.localeCompare(b.lastName));
+            
+            const outputDiv = document.getElementById('output');
+            if (rep.length === 0 && sen.length === 0) {
+                outputDiv.innerHTML = '<span style="color:#888">No valid names found.</span>';
+                return;
+            }
+            let html = '';
+            if (rep.length > 0) {
+                // Add cosponsor tally before Representatives list (includes both Rep and Sen)
+                const totalDemocrats = repDemocrats + senDemocrats;
+                const totalRepublicans = repRepublicans + senRepublicans;
+                if (hasPartyInfo) {
+                    html += `<strong>(Cosponsors ${totalDemocrats}D, ${totalRepublicans}R):</strong> `;
+                } else {
+                    html += '<strong>(Cosponsors _D, _R):</strong> ';
+                }
+                html += rep.map(n => {
+                    let name = n.lastName;
+                    if (n.classList) name = `<span class="${n.classList}">${name}</span>`;
+                    return name;
+                }).join(', ');
+            }
+            if (sen.length > 0) {
+                if (rep.length > 0) html += '<br>';
+                html += sen.map(n => {
+                    let name = n.lastName;
+                    if (n.classList) name = `<span class="${n.classList}">${name}</span>`;
+                    return name;
+                }).join(', ');
+            }
+            outputDiv.innerHTML = html;
+        });
+
+        document.getElementById('cosigner-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('input').value;
+            const groups = parseGroups(input);
+            const names = formatNames(groups);
+            const outputDiv = document.getElementById('output');
+            if (names.length === 0) {
+                outputDiv.innerHTML = '<span style="color:#888">No valid names found.</span>';
+                return;
+            }
+            outputDiv.innerHTML = names.map((n, idx) => {
+                let html = n.lastName;
+                if (n.classList) html = `<span class="${n.classList}">${html}</span>`;
+                return html;
+            }).join(', ');
+        });
+    </script>
+</body>
+</html>
