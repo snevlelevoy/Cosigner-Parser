@@ -81,6 +81,13 @@
             margin-bottom: 1.5em;
             border: 1px solid #ddd;
         }
+        .highlight-section-yellow {
+            background: #fffacd;
+            padding: 1em;
+            border-radius: 8px;
+            margin-bottom: 1.5em;
+            border: 1px solid #ddd;
+        }
         .dropdown-container {
             display: flex;
             gap: 1em;
@@ -143,7 +150,23 @@ Pocan, Mark	Rep	D	WI	-
         </div>
         
         <div class="highlight-section">
-            <div style="margin-bottom: 0.5em;">If you would like co-signers from your party and state highlighted in yellow, select your party and state below. Otherwise, leave blank.</div>
+            <h3 style="margin: 0 0 0.5em 0; font-size: 1.1em;">Italics</h3>
+            <div style="margin-bottom: 0.5em;">If you would like co-signers a certain party italicized, select that party. Otherwise, leave blank.</div>
+            <div class="dropdown-container">
+                <div class="dropdown-group">
+                    <label for="italics-party-select">Party:</label>
+                    <select id="italics-party-select">
+                        <option value="">Select Party</option>
+                        <option value="D">Democrat</option>
+                        <option value="R">Republican</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="highlight-section-yellow">
+            <h3 style="margin: 0 0 0.5em 0; font-size: 1.1em;">Highlight</h3>
+            <div style="margin-bottom: 0.5em;">If you would like co-signers from your party and state highlighted in light blue, select your party and state below. Otherwise, leave blank.</div>
             <div class="dropdown-container">
                 <div class="dropdown-group">
                     <label for="party-select">Party:</label>
@@ -246,7 +269,7 @@ Pocan, Mark	Rep	D	WI	-
             return entries;
         }
 
-        function formatNamesGrouped(entries, selectedParty = '', selectedState = '') {
+        function formatNamesGrouped(entries, selectedParty = '', selectedState = '', italicsParty = '') {
             const rep = [];
             const sen = [];
             let repDemocrats = 0;
@@ -297,16 +320,18 @@ Pocan, Mark	Rep	D	WI	-
                     }
                 }
                 const lastName = name.split(',')[0].trim();
-                let classList = '';
-                if (party === 'R') {
-                    classList = 'italic';
+                let classList = [];
+                if (italicsParty && party === italicsParty) {
+                    classList.push('italic');
                 }
                 // Highlight based on user selection
                 if (selectedParty && selectedState && party === selectedParty && state === selectedState) {
-                    classList = 'highlight';
+                    classList.push('highlight');
                 }
                 // If party is missing, do not format
-                if (!party) classList = '';
+                if (!party) classList = [];
+                
+                const classString = classList.join(' ');
                 
                 // Count party affiliations
                 if (party) {
@@ -326,7 +351,7 @@ Pocan, Mark	Rep	D	WI	-
                     }
                 }
                 
-                const obj = { lastName, classList };
+                const obj = { lastName, classList: classString };
                 if (chamber === 'Sen') {
                     sen.push(obj);
                 } else {
@@ -344,6 +369,46 @@ Pocan, Mark	Rep	D	WI	-
             };
         }
 
+        // localStorage functions for saving/restoring settings
+        function saveSettings() {
+            const settings = {
+                italicsParty: document.getElementById('italics-party-select').value,
+                highlightParty: document.getElementById('party-select').value,
+                highlightState: document.getElementById('state-select').value
+            };
+            localStorage.setItem('cosignerToolSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('cosignerToolSettings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    if (settings.italicsParty) {
+                        document.getElementById('italics-party-select').value = settings.italicsParty;
+                    }
+                    if (settings.highlightParty) {
+                        document.getElementById('party-select').value = settings.highlightParty;
+                    }
+                    if (settings.highlightState) {
+                        document.getElementById('state-select').value = settings.highlightState;
+                    }
+                } catch (e) {
+                    console.log('Error loading saved settings:', e);
+                }
+            }
+        }
+
+        // Load settings when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+        });
+
+        // Save settings when dropdowns change
+        document.getElementById('italics-party-select').addEventListener('change', saveSettings);
+        document.getElementById('party-select').addEventListener('change', saveSettings);
+        document.getElementById('state-select').addEventListener('change', saveSettings);
+
         document.getElementById('cosigner-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const input = document.getElementById('input').value;
@@ -352,8 +417,9 @@ Pocan, Mark	Rep	D	WI	-
             // Get selected party and state from dropdowns
             const selectedParty = document.getElementById('party-select').value;
             const selectedState = document.getElementById('state-select').value;
+            const italicsParty = document.getElementById('italics-party-select').value;
             
-            const { rep, sen, repDemocrats, repRepublicans, senDemocrats, senRepublicans, hasPartyInfo } = formatNamesGrouped(entries, selectedParty, selectedState);
+            const { rep, sen, repDemocrats, repRepublicans, senDemocrats, senRepublicans, hasPartyInfo } = formatNamesGrouped(entries, selectedParty, selectedState, italicsParty);
             
             // Alphabetize the lists by lastName
             rep.sort((a, b) => a.lastName.localeCompare(b.lastName));
